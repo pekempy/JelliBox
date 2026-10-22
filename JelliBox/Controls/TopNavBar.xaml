@@ -1,0 +1,158 @@
+<UserControl
+    x:Class="JelliBox.Controls.TopNavBar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- The control spans the page so the user-switcher panel can drop below the bar; only the bar and the
+         panel draw anything, so everything else lets clicks through. -->
+    <Grid x:Name="Root">
+        <Grid x:Name="Bar" Height="56" VerticalAlignment="Top"
+              Background="#F20D0D11" BorderBrush="#22FFFFFF" BorderThickness="0,0,0,1">
+
+            <!-- Left: brand mark and the tabs -->
+            <StackPanel x:Name="LeftPanel" Orientation="Horizontal" VerticalAlignment="Center" Margin="48,0,0,0" Spacing="14">
+                <!-- The app's jellyfish logo (a square crop of the app icon, centred on the jellyfish) -->
+                <Border Width="44" Height="44" CornerRadius="11" Background="#121F3F"
+                        BorderBrush="#33FFFFFF" BorderThickness="1" Padding="3" VerticalAlignment="Center">
+                    <Image Stretch="Uniform">
+                        <Image.Source>
+                            <BitmapImage UriSource="ms-appx:///Assets/LogoMark.png" DecodePixelWidth="128" />
+                        </Image.Source>
+                    </Image>
+                </Border>
+
+                <ItemsControl x:Name="TabsList" ItemsSource="{Binding Tabs}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <!-- Two buttons stacked: the highlighted one shows for the current section -->
+                                <Button Content="{Binding Name}"
+                                        Command="{Binding DataContext.OpenTabCommand, ElementName=LeftPanel}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Height="34" Padding="14,0" FontSize="12"
+                                        Visibility="{Binding IsCurrent, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <Button Content="{Binding Name}"
+                                        Command="{Binding DataContext.OpenTabCommand, ElementName=LeftPanel}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource GhostButtonStyle}"
+                                        Height="34" Padding="14,0" FontSize="12"
+                                        Visibility="{Binding IsCurrent, Converter={StaticResource InvertedBoolToVisibilityConverter}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- Right: page extras (e.g. library sort and filter), search, settings, user -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,48,0" Spacing="8">
+                <!-- Page extras keep the page's own DataContext (this panel is outside the bar's scope) -->
+                <ContentPresenter x:Name="ExtraHost" VerticalAlignment="Center" Margin="0,0,8,0" />
+
+                <StackPanel x:Name="ButtonsPanel" Orientation="Horizontal" Spacing="8">
+                <Button Command="{Binding OpenSearchCommand}"
+                        Style="{StaticResource GhostButtonStyle}"
+                        Height="34" Width="38" Padding="0" CornerRadius="17"
+                        AutomationProperties.Name="Search">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE721;" FontSize="12" />
+                </Button>
+
+                <Button Command="{Binding OpenSettingsCommand}"
+                        Style="{StaticResource GhostButtonStyle}"
+                        Height="34" Width="38" Padding="0" CornerRadius="17"
+                        AutomationProperties.Name="Settings">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="12" />
+                </Button>
+
+                <Button x:Name="AccountButton"
+                        Command="{Binding ToggleAccountMenuCommand}"
+                        Style="{StaticResource GhostButtonStyle}"
+                        Height="34" Padding="12,0" CornerRadius="17"
+                        AutomationProperties.Name="Switch user">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <!-- Profile picture from Jellyfin, over the person icon shown when there isn't one -->
+                        <Grid Width="24" Height="24" VerticalAlignment="Center">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE77B;" FontSize="13"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Ellipse Width="24" Height="24">
+                                <Ellipse.Fill>
+                                    <ImageBrush ImageSource="{Binding CurrentAvatarUrl}" Stretch="UniformToFill" />
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </Grid>
+                        <TextBlock Text="{Binding CurrentUsername}" FontSize="11" FontWeight="SemiBold"
+                                   MaxWidth="96" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- User switcher: switch to a saved account or add one (removing accounts lives in Settings) -->
+        <Border x:Name="AccountPanel"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Margin="0,62,48,0" Padding="20,16" Width="340"
+                CornerRadius="12" Background="#F5101015"
+                BorderBrush="#33FFFFFF" BorderThickness="1"
+                Visibility="{Binding IsAccountMenuOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel Spacing="10">
+                <TextBlock Text="SWITCH USER" FontSize="13" FontWeight="Bold" CharacterSpacing="120"
+                           Foreground="{StaticResource AccentBrush}" />
+
+                <ItemsControl ItemsSource="{Binding Accounts}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.SwitchAccountCommand, ElementName=AccountPanel}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                    Height="52" Padding="14,0" Margin="0,0,0,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Width="34" Height="34" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE77B;" FontSize="18"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Ellipse Width="34" Height="34">
+                                            <Ellipse.Fill>
+                                                <ImageBrush ImageSource="{Binding AvatarUrl}" Stretch="UniformToFill" />
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                    </Grid>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                        <TextBlock Text="{Binding Username}" FontSize="14" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding ServerUrl}" FontSize="10"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="13"
+                                              Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"
+                                              Visibility="{Binding IsCurrent, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Button Command="{Binding AddAccountCommand}"
+                        Style="{StaticResource GhostButtonStyle}"
+                        HorizontalAlignment="Stretch" Height="44">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;" FontSize="12" />
+                        <TextBlock Text="ADD ACCOUNT" FontSize="12" FontWeight="SemiBold" />
+                    </StackPanel>
+                </Button>
+
+                <TextBlock Text="Press B to close" FontSize="11" Foreground="{StaticResource TextMutedBrush}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

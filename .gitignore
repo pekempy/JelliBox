@@ -1,0 +1,22 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# Build output
+bin/
+obj/
+AppPackages/
+BundleArtifacts/
+*.binlog
+*.msbuildlog
+
+# Signing keys and certificates: never commit these
+*.pfx
+*.cer
+*.p12
+local.props
+
+# Local scratch
+/Assets/

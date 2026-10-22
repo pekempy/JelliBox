@@ -1,0 +1,203 @@
+<Page
+    x:Class="JelliBox.Views.SearchPage"
+    x:Name="RootPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:JelliBox.ViewModels"
+    xmlns:ctrl="using:JelliBox.Controls"
+    xmlns:m="using:JelliBox.Models"
+    KeyDown="Page_KeyDown"
+    Background="{StaticResource AppBackgroundBrush}">
+
+    <Page.DataContext>
+        <vm:SearchViewModel />
+    </Page.DataContext>
+
+    <Grid>
+        <!-- Soft artwork glow behind the page (when enabled in Settings) -->
+        <ctrl:AmbientBackdrop />
+
+        <!-- Top Search Bar & Header -->
+        <Grid Height="80" Margin="0,56,0,0" VerticalAlignment="Top" Canvas.ZIndex="10" Background="{StaticResource AppBackgroundBrush}" BorderBrush="#22FFFFFF" BorderThickness="0,0,0,1">
+            <Grid Margin="40,0" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Search Input Box -->
+                <TextBox x:Name="SearchTextBox"
+                         Grid.Column="1"
+                         Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="Search movies, TV shows, actors, directors…"
+                         FontSize="18"
+                         Height="48"
+                         VerticalAlignment="Center"
+                         Padding="16,10"
+                         CornerRadius="8"
+                         Background="{StaticResource CardBackgroundBrush}"
+                         Foreground="White"
+                         BorderThickness="1"
+                         BorderBrush="#33FFFFFF" />
+
+                <ProgressRing Grid.Column="2"
+                              IsActive="{Binding IsLoading}"
+                              Width="28" Height="28"
+                              Foreground="{StaticResource AccentBrush}"
+                              VerticalAlignment="Center"
+                              Margin="16,0,0,0"
+                              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </Grid>
+        </Grid>
+
+        <!-- Filters & Sort Bar -->
+        <Border Margin="0,136,0,0" Height="60" VerticalAlignment="Top" Background="#111116" Canvas.ZIndex="5" BorderBrush="#22FFFFFF" BorderThickness="0,0,0,1">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <StackPanel Orientation="Horizontal" Margin="40,0" Spacing="16" VerticalAlignment="Center">
+                    <!-- Type Filter -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="TYPE:" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding Types}" SelectedItem="{Binding SelectedType, Mode=TwoWay}"
+                                  Height="38" Width="130" FontSize="13" />
+                    </StackPanel>
+
+                    <!-- Genre Filter -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="GENRE:" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding Genres}" SelectedItem="{Binding SelectedGenre, Mode=TwoWay}"
+                                  Height="38" Width="160" FontSize="13" />
+                    </StackPanel>
+
+                    <!-- Year Filter -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="YEAR:" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding Years}" SelectedItem="{Binding SelectedYear, Mode=TwoWay}"
+                                  Height="38" Width="130" FontSize="13" />
+                    </StackPanel>
+
+                    <!-- Sort Filter -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="SORT:" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort, Mode=TwoWay}"
+                                  Height="38" Width="140" FontSize="13" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Search Results Scroll Area -->
+        <ScrollViewer Margin="0,196,0,0" VerticalScrollBarVisibility="Hidden">
+            <StackPanel Margin="40,24,40,60" Spacing="32">
+
+                <!-- People & Actors Results -->
+                <StackPanel Spacing="14" Visibility="{Binding HasPeopleResults, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="PEOPLE &amp; DIRECTORS" Style="{StaticResource SectionTitleStyle}" FontSize="20" />
+                    <ScrollViewer IsTabStop="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding PeopleResults}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="16" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.OpenPersonCommand, ElementName=RootPage}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Padding="0" Height="160" Width="120"
+                                            UseSystemFocusVisuals="True">
+                                        <StackPanel Width="120" Spacing="6" HorizontalAlignment="Center">
+                                            <Border Width="90" Height="90" CornerRadius="45"
+                                                    Background="{StaticResource CardBackgroundBrush}"
+                                                    HorizontalAlignment="Center">
+                                                <Image Stretch="UniformToFill">
+                                                    <Image.Source>
+                                                        <BitmapImage UriSource="{Binding ImageUrl}" DecodePixelWidth="90" />
+                                                    </Image.Source>
+                                                </Image>
+                                            </Border>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                       FontSize="14" Foreground="White"
+                                                       TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+
+                <!-- Titles & Media Results -->
+                <StackPanel Spacing="16" Visibility="{Binding HasMediaResults, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="TITLES &amp; MEDIA" Style="{StaticResource SectionTitleStyle}" FontSize="20" />
+                        <Border Background="{StaticResource AccentBrush}" CornerRadius="4" Padding="8,2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding MediaResults.Count}" FontSize="12" FontWeight="Bold" Foreground="White" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Posters Grid (Movies, TV Series, Seasons) -->
+                    <ItemsControl ItemsSource="{Binding MediaResults}"
+                                  Visibility="{Binding IsMusicView, Converter={StaticResource InvertedBoolToVisibilityConverter}}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapGrid Orientation="Horizontal"
+                                          ItemWidth="136"
+                                          ItemHeight="236"
+                                          MaximumRowsOrColumns="12"
+                                          HorizontalChildrenAlignment="Left" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ctrl:MediaCard Item="{Binding}"
+                                                Command="{Binding DataContext.OpenItemCommand, ElementName=RootPage}"
+                                                Margin="0,0,16,20" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Music Grid (1:1 square artwork) -->
+                    <ItemsControl ItemsSource="{Binding MediaResults}"
+                                  Visibility="{Binding IsMusicView, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapGrid Orientation="Horizontal"
+                                          ItemWidth="196"
+                                          ItemHeight="236"
+                                          MaximumRowsOrColumns="8"
+                                          HorizontalChildrenAlignment="Left" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ctrl:MediaCard Item="{Binding}"
+                                                Command="{Binding DataContext.OpenItemCommand, ElementName=RootPage}"
+                                                Margin="0,0,16,20" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- No Results / Prompt -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,80,0,0"
+                            Visibility="{Binding HasMediaResults, Converter={StaticResource InvertedBoolToVisibilityConverter}}">
+                    <StackPanel Visibility="{Binding HasPeopleResults, Converter={StaticResource InvertedBoolToVisibilityConverter}}">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE721;" FontSize="48" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Text="Discover Movies, TV Shows, Actors &amp; Directors"
+                                   FontSize="20" FontWeight="SemiBold" Foreground="White"
+                                   HorizontalAlignment="Center" Margin="0,16,0,8" />
+                        <TextBlock Text="Type in the search bar above or apply filters to browse your entire Jellyfin library."
+                                   FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- The navigation bar shared by every page -->
+        <ctrl:TopNavBar x:Name="TopBar" Current="search" Canvas.ZIndex="100" />
+    </Grid>
+</Page>

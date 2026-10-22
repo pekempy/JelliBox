@@ -1,0 +1,574 @@
+<Page
+    x:Class="JelliBox.Views.SettingsPage"
+    x:Name="RootPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctrl="using:JelliBox.Controls"
+    xmlns:vm="using:JelliBox.ViewModels"
+    xmlns:s="using:JelliBox.Services"
+    KeyDown="Page_KeyDown"
+    Background="{StaticResource AppBackgroundBrush}">
+
+    <Page.DataContext>
+        <vm:SettingsViewModel />
+    </Page.DataContext>
+
+    <Grid>
+        <!-- Soft artwork glow behind the page (when enabled in Settings) -->
+        <ctrl:AmbientBackdrop />
+
+        <!-- Main 2-Column Console Layout -->
+        <Grid Margin="0,56,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Rail: Category Navigation Tabs -->
+            <Border Grid.Column="0" Background="#111116" BorderBrush="#1AFFFFFF" BorderThickness="0,0,1,0">
+                <ScrollViewer x:Name="RailScrollViewer" VerticalScrollBarVisibility="Hidden" Padding="12,18,12,32">
+                    <ItemsControl ItemsSource="{Binding Categories}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SettingsCategoryItem">
+                                <Button Command="{Binding DataContext.SelectCategoryCommand, ElementName=RootPage}"
+                                        CommandParameter="{x:Bind Index}"
+                                        Style="{StaticResource SettingsCategoryButtonStyle}"
+                                        Foreground="White"
+                                        Margin="0,0,0,6">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Grid.Column="0" FontFamily="Segoe MDL2 Assets" Glyph="{x:Bind Icon}" FontSize="15" VerticalAlignment="Center" Foreground="{StaticResource AccentBrush}" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1" Margin="4,0,0,0">
+                                            <TextBlock Text="{x:Bind Title}" FontSize="13" FontWeight="SemiBold" Foreground="White" />
+                                            <TextBlock Text="{x:Bind Subtitle}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxLines="1" />
+                                        </StackPanel>
+                                        <FontIcon Grid.Column="2" FontFamily="Segoe MDL2 Assets" Glyph="&#xE76C;" FontSize="10" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Right Detail Pane: Category Settings Controls -->
+            <ScrollViewer x:Name="RightPaneScrollViewer" Grid.Column="1" VerticalScrollBarVisibility="Hidden">
+                <StackPanel Margin="36,24,48,60" MaxWidth="880" HorizontalAlignment="Left" Spacing="22">
+
+                    <!-- Section Header -->
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="{Binding ActiveCategoryTitle}" FontSize="22" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="{Binding ActiveCategorySubtitle}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+
+                    <!-- ── TAB 0: Accounts & Profiles ──────────────────────────────── -->
+                    <StackPanel Spacing="16" Visibility="{Binding IsAccountCategory, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <!-- Active User Card -->
+                        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" BorderThickness="1" BorderBrush="#22FFFFFF">
+                            <StackPanel Spacing="14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" Margin="0,0,16,0">
+                                        <Border Width="44" Height="44" CornerRadius="22" Background="{StaticResource AccentTintBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="2">
+                                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE77B;" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource AccentBrush}" />
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Username}" FontSize="17" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" />
+                                                <Border Background="{StaticResource AccentBrush}" CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
+                                                    <TextBlock Text="ACTIVE" FontSize="9" FontWeight="Bold" Foreground="White" />
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding ServerUrl}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1" Content="+ ADD ACCOUNT" Command="{Binding AddAccountCommand}"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Height="36" Padding="14,0" FontSize="12" VerticalAlignment="Center" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <Button x:Name="SignOutButton" Content="SIGN OUT ACTIVE SESSION" Command="{Binding RequestSignOutCommand}"
+                                        Style="{StaticResource GhostButtonStyle}"
+                                        HorizontalAlignment="Left" Height="36" Padding="16,0" FontSize="12" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Saved Accounts List -->
+                        <TextBlock Text="Switch Saved Accounts" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" />
+                        <ItemsControl ItemsSource="{Binding SavedAccounts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="s:SavedAccount">
+                                    <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" BorderThickness="1" BorderBrush="#1AFFFFFF">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE77B;" FontSize="16" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{x:Bind Username}" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                                    <TextBlock Text="{x:Bind ServerUrl}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8">
+                                                <Button Content="SWITCH TO"
+                                                        Command="{Binding DataContext.SwitchAccountCommand, ElementName=RootPage}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource GhostButtonStyle}"
+                                                        Height="32" Padding="12,0" FontSize="11" />
+                                                <Button Command="{Binding DataContext.RemoveAccountCommand, ElementName=RootPage}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource IconButtonStyle}"
+                                                        Height="32" Width="32"
+                                                        AutomationProperties.Name="Remove Account">
+                                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="11" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- ── TAB 1: Playback & Streaming ─────────────────────────────── -->
+                    <StackPanel Spacing="16" Visibility="{Binding IsPlaybackCategory, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" BorderThickness="1" BorderBrush="#22FFFFFF">
+                            <StackPanel Spacing="18">
+                                <!-- Quality Bitrate -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Maximum Streaming Bitrate" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Maximum throughput allocated for media delivery. Choose Direct Play for untouched streams."
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding BitrateOptions}"
+                                              SelectedItem="{Binding SelectedBitrate, Mode=TwoWay}"
+                                              DisplayMemberPath="Label"
+                                              HorizontalAlignment="Right" Width="260" Height="40" FontSize="12" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Auto-Skip Intro -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Auto-Skip Intro" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Instantly jump past TV show theme songs and opening title sequences"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ToggleSwitch Grid.Column="1" IsOn="{Binding AutoSkipIntro, Mode=TwoWay}" HorizontalAlignment="Right" OnContent="" OffContent="" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Auto-Skip Outro -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Auto-Skip Outro / Credits" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Skip past end credits roll and seamlessly queue the next episode"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ToggleSwitch Grid.Column="1" IsOn="{Binding AutoSkipOutro, Mode=TwoWay}" HorizontalAlignment="Right" OnContent="" OffContent="" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ── TAB 2: Subtitles & Audio ────────────────────────────────── -->
+                    <StackPanel Spacing="16" Visibility="{Binding IsSubtitlesCategory, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" BorderThickness="1" BorderBrush="#22FFFFFF">
+                            <StackPanel Spacing="18">
+                                <!-- Delivery Mode -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Subtitle Delivery Mode" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Direct Play uses native sidecar WebVTT for instant playback with 0% CPU overhead."
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding SubtitleDeliveryOptions}"
+                                              SelectedItem="{Binding SelectedSubtitleDelivery, Mode=TwoWay}"
+                                              DisplayMemberPath="Label"
+                                              HorizontalAlignment="Right" Width="260" Height="40" FontSize="12" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Preferred Subtitle Language -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Preferred Subtitle Language" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Automatically select this language when subtitles are available in media"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding PreferredSubtitleLanguages}"
+                                              SelectedItem="{Binding SelectedPreferredSubtitleLanguage, Mode=TwoWay}"
+                                              DisplayMemberPath="Label"
+                                              HorizontalAlignment="Right" Width="260" Height="40" FontSize="12" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Subtitle Font Size -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Subtitle Font Sizing" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Adjust subtitle size for enhanced readability on large 4K and 1080p TV displays"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding SubtitleFontSizes}"
+                                              SelectedItem="{Binding SelectedSubtitleFontSize, Mode=TwoWay}"
+                                              DisplayMemberPath="Label"
+                                              HorizontalAlignment="Right" Width="260" Height="40" FontSize="12" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Preferred Audio Language -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Preferred Audio Track" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Language priority used when selecting the default audio stream"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding PreferredAudioLanguages}"
+                                              SelectedItem="{Binding SelectedPreferredAudioLanguage, Mode=TwoWay}"
+                                              DisplayMemberPath="Label"
+                                              HorizontalAlignment="Right" Width="260" Height="40" FontSize="12" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ── TAB 3: Interface & Display ──────────────────────────────── -->
+                    <StackPanel Spacing="16" Visibility="{Binding IsDisplayCategory, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" BorderThickness="1" BorderBrush="#22FFFFFF">
+                            <StackPanel Spacing="18">
+                                <!-- Spotlight Hero Banner -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Featured Spotlight Showcase" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Display large rotating backdrop showcase at the top of the Home dashboard"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ToggleSwitch Grid.Column="1" IsOn="{Binding ShowHeroBanner, Mode=TwoWay}" HorizontalAlignment="Right" OnContent="" OffContent="" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Accent colour -->
+                                <StackPanel Spacing="12">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="Accent Colour" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="The highlight colour used for buttons, selection and badges across the whole app"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ItemsControl ItemsSource="{Binding AccentSwatches}" Margin="5,4,0,4">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="16" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Command="{Binding DataContext.SelectAccentCommand, ElementName=RootPage}"
+                                                        CommandParameter="{Binding}"
+                                                        Background="{Binding Brush}"
+                                                        Style="{StaticResource SwatchButtonStyle}"
+                                                        AutomationProperties.Name="{Binding Name}">
+                                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="16" Foreground="White"
+                                                              Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Blurred artwork background -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Artwork Background" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Show a soft, blurred version of the selected title's artwork behind the page"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ToggleSwitch Grid.Column="1" IsOn="{Binding AmbientBackground, Mode=TwoWay}" HorizontalAlignment="Right" OnContent="" OffContent="" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Continue Watching Row -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Continue Watching Row" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Display in-progress media and next-up episodes directly on Home"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ToggleSwitch Grid.Column="1" IsOn="{Binding ShowContinueWatching, Mode=TwoWay}" HorizontalAlignment="Right" OnContent="" OffContent="" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Items per Page -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Items to Load Per Page" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="Page batch size for library browsing (choose All Items for single-page browsing)"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding PageSizeOptions}"
+                                              SelectedItem="{Binding SelectedPageSizeOption, Mode=TwoWay}"
+                                              DisplayMemberPath="Label"
+                                              HorizontalAlignment="Right" Width="260" Height="40" FontSize="12" />
+                                </Grid>
+
+                                <Rectangle Height="1" Fill="#22FFFFFF" />
+
+                                <!-- Episode Title Format -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="2">
+                                        <TextBlock Text="Episode Naming Format" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                        <TextBlock Text="How episode numbers and names are formatted in library cards and detail headers"
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding EpisodeTitleStyles}"
+                                              SelectedItem="{Binding SelectedEpisodeTitleStyle, Mode=TwoWay}"
+                                              DisplayMemberPath="Label"
+                                              HorizontalAlignment="Right" Width="260" Height="40" FontSize="12" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ── TAB 4: Libraries & Ordering ─────────────────────────────── -->
+                    <StackPanel Spacing="16" Visibility="{Binding IsLibrariesCategory, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" BorderThickness="1" BorderBrush="#22FFFFFF">
+                            <StackPanel Spacing="14">
+                                <TextBlock Text="Drag the arrow buttons to set the order of sections on the Home screen. The 'Continue Watching' row can be repositioned among library sections. Toggle the switch to show or hide a library."
+                                           FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+
+                                <ItemsControl ItemsSource="{Binding Libraries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:LibraryOrderItem">
+                                            <Border Background="#15FFFFFF" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" BorderThickness="1" BorderBrush="#15FFFFFF">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                        <TextBlock Text="{x:Bind Name}" FontSize="14" FontWeight="SemiBold"
+                                                                   VerticalAlignment="Center" Foreground="White" TextTrimming="CharacterEllipsis" />
+                                                        <Border Background="{StaticResource AccentTintBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1"
+                                                                CornerRadius="3" Padding="5,1" VerticalAlignment="Center"
+                                                                Visibility="{x:Bind IsSpecial, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                            <TextBlock Text="SECTION" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                                                        </Border>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8">
+                                                        <Button Command="{Binding DataContext.MoveLibraryUpCommand, ElementName=RootPage}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource GhostButtonStyle}"
+                                                                Height="34" Width="36" Padding="0"
+                                                                AutomationProperties.Name="Move section up">
+                                                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70E;" FontSize="11" />
+                                                        </Button>
+                                                        <Button Command="{Binding DataContext.MoveLibraryDownCommand, ElementName=RootPage}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource GhostButtonStyle}"
+                                                                Height="34" Width="36" Padding="0"
+                                                                AutomationProperties.Name="Move section down">
+                                                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="11" />
+                                                        </Button>
+                                                        <ToggleSwitch IsOn="{Binding IsVisible, Mode=TwoWay}"
+                                                                      OnContent="" OffContent=""
+                                                                      VerticalAlignment="Center" Margin="8,0,0,0"
+                                                                      Visibility="{x:Bind IsSpecial, Converter={StaticResource InvertedBoolToVisibilityConverter}}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Hero Carousel Libraries Selection Card -->
+                        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" BorderThickness="1" BorderBrush="#22FFFFFF">
+                            <StackPanel Spacing="14">
+                                <TextBlock Text="HERO CAROUSEL LIBRARIES" FontSize="13" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" CharacterSpacing="100" />
+                                <TextBlock Text="Customise which libraries contribute recent additions and random recommendations to the top Hero banner."
+                                           FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+
+                                <ItemsControl ItemsSource="{Binding Libraries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:LibraryOrderItem">
+                                            <Border Background="#15FFFFFF" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" BorderThickness="1" BorderBrush="#15FFFFFF">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{x:Bind Name}" FontSize="14" FontWeight="SemiBold"
+                                                               VerticalAlignment="Center" Foreground="White" TextTrimming="CharacterEllipsis" Margin="0,0,16,0" />
+                                                    <ToggleSwitch Grid.Column="1" IsOn="{Binding IsHeroIncluded, Mode=TwoWay}"
+                                                                  OnContent="" OffContent=""
+                                                                  MinWidth="100"
+                                                                  HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ── TAB 5: Diagnostics & About ──────────────────────────────── -->
+                    <StackPanel Spacing="16" Visibility="{Binding IsSystemCategory, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <!-- Cache Card -->
+                        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" BorderThickness="1" BorderBrush="#22FFFFFF">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="3">
+                                    <TextBlock Text="Local Metadata &amp; Image Cache" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                    <TextBlock Text="Flush in-memory and temporary API response caches to force full refresh from server"
+                                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding CacheStatus}" FontSize="12" Foreground="{StaticResource SuccessBrush}"
+                                               Visibility="{Binding CacheStatus, Converter={StaticResource StringEmptyToVisibilityConverter}}"
+                                               Margin="0,3,0,0" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="FLUSH CACHE" Command="{Binding ClearCacheCommand}"
+                                        Style="{StaticResource GhostButtonStyle}"
+                                        HorizontalAlignment="Right" Height="36" Padding="16,0" FontSize="12" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Latency & Diagnostics Card -->
+                        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" BorderThickness="1" BorderBrush="#22FFFFFF">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,24,0" Spacing="3">
+                                    <TextBlock Text="Server Connection &amp; Latency" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                    <TextBlock Text="{Binding DiagnosticsPingStatus}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="TEST CONNECTION" Command="{Binding TestConnectionCommand}"
+                                        Style="{StaticResource GhostButtonStyle}"
+                                        HorizontalAlignment="Right" Height="36" Padding="16,0" FontSize="12" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- About Card -->
+                        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20" BorderThickness="1" BorderBrush="#22FFFFFF">
+                            <StackPanel Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="JELLIBOX FOR XBOX" FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" CharacterSpacing="100" />
+                                    <Border Background="{StaticResource AccentTintBrush}" CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
+                                        <TextBlock Text="VERSION 1.0.0" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                                    </Border>
+                                    <Border Background="#262ECC71" CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
+                                        <TextBlock Text="XBOX SERIES X|S OPTIMISED" FontSize="9" FontWeight="Bold" Foreground="#2ECC71" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="High-performance native UWP client engineered for Xbox Series X|S with 4K HDR Direct Play, sidecar WebVTT subtitle acceleration, and multi-user profile switching."
+                                           FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18" />
+                                <TextBlock Text="Designed with 10-foot gamepad navigation for the living room." FontSize="11" Foreground="{StaticResource TextMutedBrush}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Sign-out confirmation -->
+        <Grid x:Name="SignOutConfirm" Canvas.ZIndex="300" Background="#CC000000"
+              Visibility="{Binding IsSignOutConfirmOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center" Width="460" Padding="28,24"
+                    CornerRadius="12" Background="#FF14141A" BorderBrush="#33FFFFFF" BorderThickness="1">
+                <StackPanel Spacing="18">
+                    <TextBlock Text="Sign out?" FontSize="22" FontWeight="Bold" Foreground="White" />
+                    <TextBlock Text="You will need to sign in again to use this account on this device."
+                               FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button x:Name="CancelSignOutButton" Content="CANCEL" Command="{Binding CancelSignOutCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}" Width="150" Height="42" />
+                        <Button Content="SIGN OUT" Command="{Binding SignOutCommand}"
+                                Style="{StaticResource GhostButtonStyle}" Width="150" Height="42" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- The navigation bar shared by every page -->
+        <ctrl:TopNavBar x:Name="TopBar" Current="settings" Canvas.ZIndex="100" />
+    </Grid>
+</Page>

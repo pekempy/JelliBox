@@ -1,0 +1,235 @@
+<Page
+    x:Class="JelliBox.Views.HomePage"
+    x:Name="RootPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:JelliBox.ViewModels"
+    xmlns:ctrl="using:JelliBox.Controls"
+    KeyDown="Page_KeyDown"
+    Background="{StaticResource AppBackgroundBrush}">
+
+    <Page.DataContext>
+        <vm:HomeViewModel />
+    </Page.DataContext>
+
+    <Grid>
+        <!-- Soft artwork glow behind the page (when enabled in Settings) -->
+        <ctrl:AmbientBackdrop />
+
+        <!-- Loading state -->
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+            <ProgressRing IsActive="True" Width="50" Height="50"
+                          Foreground="{StaticResource AccentBrush}" />
+            <TextBlock Text="Loading…" Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="16" HorizontalAlignment="Center" Margin="0,14,0,0" />
+        </StackPanel>
+
+        <!-- Main content -->
+        <ScrollViewer x:Name="HomeContentRoot"
+                      Margin="0,56,0,0"
+                      VerticalScrollBarVisibility="Hidden"
+                      Visibility="{Binding IsLoading, Converter={StaticResource InvertedBoolToVisibilityConverter}}">
+            <StackPanel>
+
+                <!-- ═══ HERO ═══════════════════════════════════════════════════ -->
+                <Grid Height="380" Visibility="{Binding HeroItem, Converter={StaticResource NullToVisibilityConverter}}">
+                    <!-- Backdrop image -->
+                    <!-- Dual backdrop images for crossfade (A/B layers) -->
+                    <Image x:Name="HeroBackdropImageA" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Image x:Name="HeroBackdropImageB" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0" />
+
+                    <!-- Dark gradients: bottom fade + left fade -->
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#00000000" Offset="0" />
+                                <GradientStop Color="#CC000000" Offset="0.6" />
+                                <GradientStop Color="#FF0D0D0D" Offset="1" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Rectangle>
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#DD000000" Offset="0" />
+                                <GradientStop Color="#660D0D0D" Offset="0.5" />
+                                <GradientStop Color="#000D0D0D" Offset="1" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+
+                    <!-- Hero info panel (Pinned cleanly to the LEFT side) -->
+                    <StackPanel HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="48,0,0,28" MaxWidth="620">
+                        <!-- Logo or title -->
+                        <Image MaxWidth="260" MaxHeight="80" HorizontalAlignment="Left"
+                               Margin="0,0,0,12"
+                               Visibility="{Binding HeroLogoUrl, Converter={StaticResource NullToVisibilityConverter}}">
+                            <Image.Source>
+                                <BitmapImage UriSource="{Binding HeroLogoUrl}" />
+                            </Image.Source>
+                        </Image>
+                        <TextBlock Text="{Binding HeroItem.Name}"
+                                   Style="{StaticResource HeroTitleStyle}"
+                                   HorizontalAlignment="Left"
+                                   Visibility="{Binding HeroLogoUrl, Converter={StaticResource InvertedNullToVisibilityConverter}}"
+                                   Margin="0,0,0,8" />
+
+                        <!-- Meta line -->
+                        <TextBlock Text="{Binding HeroMeta}"
+                                   Style="{StaticResource MetaTextStyle}"
+                                   HorizontalAlignment="Left"
+                                   Margin="0,0,0,10" />
+
+                        <!-- Overview snippet -->
+                        <TextBlock Text="{Binding HeroItem.Overview}"
+                                   Style="{StaticResource OverviewTextStyle}"
+                                   HorizontalAlignment="Left"
+                                   MaxLines="2"
+                                   Margin="0,0,0,18" />
+
+                        <!-- Actions -->
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                            <Button x:Name="HeroPlayButton"
+                                    Command="{Binding PlayHeroCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Width="140" Height="42"
+                                    AutomationProperties.Name="Play hero item">
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="14" VerticalAlignment="Center" />
+                                    <TextBlock Text="PLAY" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                                    <Border Background="#33FFFFFF" CornerRadius="3" Padding="5,1" Margin="2,0,0,0"><TextBlock Text="A" FontSize="10" FontWeight="Bold" Foreground="White" /></Border>
+                                </StackPanel>
+                            </Button>
+                            <Button Content="MORE INFO"
+                                    Command="{Binding MoreInfoHeroCommand}"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    Width="140" Height="42" FontSize="13"
+                                    AutomationProperties.Name="More info" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Carousel Indicators & Arrows -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                Margin="0,0,48,28" Spacing="8">
+                        <Button Command="{Binding PrevHeroCommand}"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Height="34" Width="36" Padding="0"
+                                AutomationProperties.Name="Previous hero slide">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE76B;" FontSize="11" />
+                        </Button>
+
+                        <ItemsControl ItemsSource="{Binding HeroIndicators}" VerticalAlignment="Center">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="6" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Rectangle Width="{Binding Width}" Height="4" RadiusX="2" RadiusY="2"
+                                               Fill="White"
+                                               Opacity="{Binding Opacity}"
+                                               VerticalAlignment="Center" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Command="{Binding NextHeroCommand}"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Height="34" Width="36" Padding="0"
+                                AutomationProperties.Name="Next hero slide">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE76C;" FontSize="11" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ═══ HOME ROWS (Continue Watching + Library Sections, ordered) ════ -->
+                <Grid Margin="0,4,0,40">
+                    <Grid.Resources>
+                        <ctrl:HomeSectionTemplateSelector x:Key="SectionSelector">
+                            <!-- Continue Watching template -->
+                            <ctrl:HomeSectionTemplateSelector.ContinueWatchingTemplate>
+                                <DataTemplate x:DataType="vm:HomeSectionRow">
+                                    <StackPanel Margin="48,24,0,0">
+                                        <TextBlock Text="{Binding Title}"
+                                                   Style="{StaticResource SectionTitleStyle}"
+                                                   Margin="0,0,0,12" />
+                                        <ScrollViewer IsTabStop="False"
+                                                      HorizontalScrollBarVisibility="Hidden"
+                                                      VerticalScrollBarVisibility="Disabled">
+                                            <ItemsControl ItemsSource="{Binding Items}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal" Spacing="14" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <ctrl:MediaCard Item="{Binding}"
+                                                                        Command="{Binding DataContext.OpenItemCommand, ElementName=RootPage}"
+                                                                        RemoveFromContinueWatchingCommand="{Binding DataContext.RemoveFromContinueWatchingCommand, ElementName=RootPage}"
+                                                                        IsInContinueWatching="True"
+                                                                        ShowProgress="True" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ctrl:HomeSectionTemplateSelector.ContinueWatchingTemplate>
+
+                            <!-- Library Section template -->
+                            <ctrl:HomeSectionTemplateSelector.LibrarySectionTemplate>
+                                <DataTemplate x:DataType="vm:HomeSectionRow">
+                                    <StackPanel Margin="48,24,0,0">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,48,12">
+                                            <TextBlock Text="{Binding Title}"
+                                                       Style="{StaticResource SectionTitleStyle}"
+                                                       VerticalAlignment="Center" />
+                                            <Button Command="{Binding OpenLibraryCommand}"
+                                                    Style="{StaticResource GhostButtonStyle}"
+                                                    Height="28" Padding="10,0"
+                                                    Margin="16,0,0,0"
+                                                    VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <TextBlock Text="SEE ALL" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE76C;" FontSize="9" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                        <ScrollViewer IsTabStop="False"
+                                                      HorizontalScrollBarVisibility="Hidden"
+                                                      VerticalScrollBarVisibility="Disabled">
+                                            <ItemsControl ItemsSource="{Binding Items}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal" Spacing="14" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <ctrl:MediaCard Item="{Binding}"
+                                                                        Command="{Binding DataContext.OpenItemCommand, ElementName=RootPage}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ctrl:HomeSectionTemplateSelector.LibrarySectionTemplate>
+                        </ctrl:HomeSectionTemplateSelector>
+                    </Grid.Resources>
+
+                    <ItemsControl ItemsSource="{Binding HomeRows}"
+                                  ItemTemplateSelector="{StaticResource SectionSelector}" />
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+
+
+        <!-- The navigation bar shared by every page -->
+        <ctrl:TopNavBar x:Name="TopBar" Current="home" Canvas.ZIndex="100" />
+    </Grid>
+</Page>

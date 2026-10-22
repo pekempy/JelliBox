@@ -1,0 +1,294 @@
+<Page
+    x:Class="JelliBox.Views.LoginPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:JelliBox.ViewModels"
+    Background="{StaticResource AppBackgroundBrush}"
+    KeyDown="Page_KeyDown">
+
+    <Page.DataContext>
+        <vm:LoginViewModel />
+    </Page.DataContext>
+
+    <Grid>
+        <!-- Backdrop -->
+        <Rectangle>
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#0B0D12" Offset="0" />
+                    <GradientStop Color="#0F1824" Offset="1" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <!-- Soft accent glows in opposite corners -->
+        <Rectangle Width="760" Height="520" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#3300A4DC" Offset="0" />
+                    <GradientStop Color="#0000A4DC" Offset="0.7" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle Width="640" Height="440" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="1,1" EndPoint="0,0">
+                    <GradientStop Color="#268E5CF7" Offset="0" />
+                    <GradientStop Color="#008E5CF7" Offset="0.7" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <Grid Margin="48,32,48,56">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ── Brand panel ─────────────────────────────────────────── -->
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,40,0">
+                <TextBlock Text="JELLIBOX"
+                           FontSize="54" FontWeight="Light"
+                           Foreground="White"
+                           CharacterSpacing="300" />
+                <Rectangle Width="64" Height="4" RadiusX="2" RadiusY="2"
+                           Fill="{StaticResource AccentBrush}"
+                           HorizontalAlignment="Left" Margin="2,10,0,12" />
+                <TextBlock Text="A Jellyfin client made for the big screen"
+                           FontSize="16"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           TextWrapping="Wrap" />
+
+                <StackPanel Spacing="16" Margin="0,40,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <Border Width="38" Height="38" CornerRadius="19" Background="{StaticResource AccentTintBrush}">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8EA;" FontSize="16"
+                                      Foreground="{StaticResource AccentBrush}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Quick Connect" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                            <TextBlock Text="Approve sign-in from your phone, no typing" FontSize="12"
+                                       Foreground="{StaticResource TextMutedBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <Border Width="38" Height="38" CornerRadius="19" Background="{StaticResource AccentTintBrush}">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE77B;" FontSize="16"
+                                      Foreground="{StaticResource AccentBrush}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Everyone in the house" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                            <TextBlock Text="Add several accounts and switch any time" FontSize="12"
+                                       Foreground="{StaticResource TextMutedBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <Border Width="38" Height="38" CornerRadius="19" Background="{StaticResource AccentTintBrush}">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="16"
+                                      Foreground="{StaticResource AccentBrush}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Built for a controller" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                            <TextBlock Text="Everything is reachable with the D-pad" FontSize="12"
+                                       Foreground="{StaticResource TextMutedBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ── Sign-in card ────────────────────────────────────────── -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Hidden" VerticalAlignment="Center">
+                <Border Background="#E6141A24" BorderBrush="#26FFFFFF" BorderThickness="1"
+                        CornerRadius="16" Padding="32,28" MaxWidth="480" HorizontalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock Text="Sign in" FontSize="26" FontWeight="SemiBold" Foreground="White" />
+                        <TextBlock Text="Connect to your Jellyfin server" FontSize="13"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,22" />
+
+                        <!-- Server URL -->
+                        <TextBlock Text="SERVER" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="ServerUrlTextBox"
+                                 Text="{Binding ServerUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource DarkTextBoxStyle}"
+                                 Height="52" FontSize="16"
+                                 PlaceholderText="http://192.168.1.x:8096"
+                                 KeyDown="ServerUrlTextBox_KeyDown"
+                                 Margin="0,8,0,22" />
+
+                        <!-- Sign-in method -->
+                        <TextBlock Text="SIGN IN WITH" Style="{StaticResource FieldLabelStyle}" />
+                        <Grid Margin="0,8,0,22">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0" Content="QUICK CONNECT"
+                                    Command="{Binding SwitchToQuickConnectCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Height="48" FontSize="13" HorizontalAlignment="Stretch"
+                                    Visibility="{Binding IsQuickConnectMode, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <Button Grid.Column="0" Content="QUICK CONNECT"
+                                    Command="{Binding SwitchToQuickConnectCommand}"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    Height="48" FontSize="13" HorizontalAlignment="Stretch"
+                                    Visibility="{Binding IsQuickConnectMode, Converter={StaticResource InvertedBoolToVisibilityConverter}}" />
+
+                            <Button Grid.Column="2" Content="PASSWORD"
+                                    Command="{Binding SwitchToPasswordCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Height="48" FontSize="13" HorizontalAlignment="Stretch"
+                                    Visibility="{Binding IsQuickConnectMode, Converter={StaticResource InvertedBoolToVisibilityConverter}}" />
+                            <Button Grid.Column="2" Content="PASSWORD"
+                                    Command="{Binding SwitchToPasswordCommand}"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    Height="48" FontSize="13" HorizontalAlignment="Stretch"
+                                    Visibility="{Binding IsQuickConnectMode, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </Grid>
+
+                        <!-- ── Quick Connect ─────────────────────────────── -->
+                        <StackPanel Visibility="{Binding IsQuickConnectMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <!-- Before a code exists -->
+                            <StackPanel Visibility="{Binding HasQuickConnectCode, Converter={StaticResource InvertedBoolToVisibilityConverter}}">
+                                <TextBlock Text="Get a code, then approve it from the Jellyfin app on your phone or the web page on your PC."
+                                           FontSize="13" LineHeight="20"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap" Margin="0,0,0,18" />
+                                <Button x:Name="QuickConnectStartButton"
+                                        Content="GET QUICK CONNECT CODE"
+                                        Command="{Binding StartQuickConnectCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Height="52" HorizontalAlignment="Stretch"
+                                        IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"
+                                        AutomationProperties.Name="Get Quick Connect Code" />
+                            </StackPanel>
+
+                            <!-- Code ready -->
+                            <StackPanel Visibility="{Binding HasQuickConnectCode, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Border Background="#0F1A2A" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1.5"
+                                        CornerRadius="12" Padding="20,18" Margin="0,0,0,14">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="YOUR CODE" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource AccentBrush}"
+                                                   HorizontalAlignment="Center" CharacterSpacing="200" />
+                                        <TextBlock Text="{Binding QuickConnectCode}"
+                                                   FontSize="56" FontWeight="Bold" Foreground="White"
+                                                   FontFamily="Consolas, Cascadia Code, Segoe UI Mono, monospace"
+                                                   HorizontalAlignment="Center" CharacterSpacing="300"
+                                                   Margin="0,6,0,8" />
+                                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                                            <ProgressRing IsActive="{Binding IsQuickConnectPolling}"
+                                                          Width="20" Height="20"
+                                                          Foreground="{StaticResource AccentBrush}"
+                                                          Visibility="{Binding IsQuickConnectPolling, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <TextBlock Text="{Binding QuickConnectStatus}" FontSize="12"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="320" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <TextBlock FontSize="12" LineHeight="19" Foreground="{StaticResource TextMutedBrush}"
+                                           TextWrapping="Wrap" Margin="2,0,2,14"
+                                           Text="On your phone or PC: open Jellyfin, tap your profile picture, choose Quick Connect and enter this code." />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="10" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="RefreshCodeButton" Grid.Column="0" Content="NEW CODE"
+                                            Command="{Binding RefreshQuickConnectCommand}"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Height="46" FontSize="13" HorizontalAlignment="Stretch" />
+                                    <Button Grid.Column="2" Content="CANCEL CODE"
+                                            Command="{Binding CancelQuickConnectCommand}"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Height="46" FontSize="13" HorizontalAlignment="Stretch" />
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- ── Password ─────────────────────────────────── -->
+                        <StackPanel Visibility="{Binding IsQuickConnectMode, Converter={StaticResource InvertedBoolToVisibilityConverter}}">
+                            <TextBlock Text="USERNAME" Style="{StaticResource FieldLabelStyle}" />
+                            <TextBox x:Name="UsernameTextBox"
+                                     Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     Height="52" FontSize="16"
+                                     PlaceholderText="Your Jellyfin username"
+                                     KeyDown="UsernameTextBox_KeyDown"
+                                     Margin="0,8,0,18" />
+
+                            <TextBlock Text="PASSWORD" Style="{StaticResource FieldLabelStyle}" />
+                            <PasswordBox x:Name="PasswordInput"
+                                         Style="{StaticResource DarkPasswordBoxStyle}"
+                                         Height="52" FontSize="16"
+                                         PlaceholderText="Password"
+                                         PasswordChanged="PasswordInput_PasswordChanged"
+                                         KeyDown="PasswordInput_KeyDown"
+                                         Margin="0,8,0,24" />
+
+                            <Button x:Name="SignInButton"
+                                    Content="SIGN IN"
+                                    Command="{Binding LoginCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Height="52" HorizontalAlignment="Stretch"
+                                    IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"
+                                    AutomationProperties.Name="Sign in to Jellyfin" />
+                        </StackPanel>
+
+                        <!-- Error banner -->
+                        <Border Background="#26E5484D" BorderBrush="{StaticResource DangerBrush}" BorderThickness="1"
+                                CornerRadius="8" Padding="14,10" Margin="0,18,0,0"
+                                Visibility="{Binding ErrorMessage, Converter={StaticResource StringEmptyToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE783;" FontSize="14"
+                                          Foreground="{StaticResource DangerBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                                <TextBlock Text="{Binding ErrorMessage}" FontSize="13"
+                                           Foreground="White" TextWrapping="Wrap" MaxWidth="360" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Busy indicator -->
+                        <ProgressRing IsActive="{Binding IsLoading}"
+                                      Width="32" Height="32"
+                                      Foreground="{StaticResource AccentBrush}"
+                                      HorizontalAlignment="Center" Margin="0,18,0,0"
+                                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                        <!-- Adding an account: back out without signing in -->
+                        <Button Content="CANCEL"
+                                Command="{Binding CancelCommand}"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Height="46" HorizontalAlignment="Stretch"
+                                Margin="0,16,0,0"
+                                Visibility="{Binding CanCancel, Converter={StaticResource BoolToVisibilityConverter}}"
+                                AutomationProperties.Name="Cancel adding account" />
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Controller hints -->
+        <StackPanel Orientation="Horizontal" Spacing="22" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,18">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Border Background="#33FFFFFF" CornerRadius="3" Padding="6,1"><TextBlock Text="A" FontSize="10" FontWeight="Bold" Foreground="White" /></Border>
+                <TextBlock Text="Select / type" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Border Background="#33FFFFFF" CornerRadius="3" Padding="6,1"><TextBlock Text="D-pad" FontSize="10" FontWeight="Bold" Foreground="White" /></Border>
+                <TextBlock Text="Move" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6" Visibility="{Binding CanCancel, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Border Background="#33FFFFFF" CornerRadius="3" Padding="6,1"><TextBlock Text="B" FontSize="10" FontWeight="Bold" Foreground="White" /></Border>
+                <TextBlock Text="Cancel" FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>

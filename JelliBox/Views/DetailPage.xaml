@@ -1,0 +1,318 @@
+<Page
+    x:Name="RootPage"
+    x:Class="JelliBox.Views.DetailPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:JelliBox.ViewModels"
+    xmlns:ctrl="using:JelliBox.Controls"
+    KeyDown="Page_KeyDown"
+    Background="{StaticResource AppBackgroundBrush}">
+
+    <Page.DataContext>
+        <vm:DetailViewModel />
+    </Page.DataContext>
+
+    <Grid>
+        <!-- Loading -->
+        <ProgressRing IsActive="{Binding IsLoading}" Width="60" Height="60"
+                      Foreground="{StaticResource AccentBrush}"
+                      VerticalAlignment="Center" HorizontalAlignment="Center"
+                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+        <!-- Content -->
+        <Grid Visibility="{Binding IsLoading, Converter={StaticResource InvertedBoolToVisibilityConverter}}">
+
+            <!-- Full-bleed backdrop -->
+            <Image Stretch="UniformToFill" VerticalAlignment="Top" Opacity="0.35">
+                <Image.Source>
+                    <BitmapImage UriSource="{Binding BackdropUrl}" DecodePixelWidth="1920" />
+                </Image.Source>
+            </Image>
+
+            <!-- Bottom fade -->
+            <Rectangle VerticalAlignment="Stretch">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#00000000" Offset="0" />
+                        <GradientStop Color="#BB0D0D0D" Offset="0.35" />
+                        <GradientStop Color="#FF0D0D0D" Offset="0.6" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <!-- Back button -->
+            <Button Command="{Binding GoBackCommand}"
+                    Style="{StaticResource GhostButtonStyle}"
+                    VerticalAlignment="Top" HorizontalAlignment="Left"
+                    Margin="36,16,0,0" Padding="14,0" Height="36"
+                    Canvas.ZIndex="10"
+                    AutomationProperties.Name="Go back">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72B;" FontSize="12" VerticalAlignment="Center" />
+                    <TextBlock Text="BACK" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+            <!-- Main scrollable layout -->
+            <ScrollViewer VerticalScrollBarVisibility="Hidden">
+                <StackPanel Margin="0,0,0,60">
+                    <Grid Margin="48,68,48,28" VerticalAlignment="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="36" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Poster / Episode Still -->
+                        <Border Grid.Column="0" CornerRadius="8"
+                                Width="{Binding PosterWidth}" Height="{Binding PosterHeight}">
+                            <Image Stretch="UniformToFill">
+                                <Image.Source>
+                                    <BitmapImage UriSource="{Binding PosterUrl}" DecodePixelWidth="500" />
+                                </Image.Source>
+                            </Image>
+                        </Border>
+
+                        <!-- Info panel -->
+                        <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Spacing="0">
+
+                            <!-- Series / Show subtitle if applicable (No S01Exx) -->
+                            <TextBlock Text="{Binding HeaderSubtitle}"
+                                       Foreground="{StaticResource AccentBrush}"
+                                       FontSize="18" FontWeight="SemiBold"
+                                       Visibility="{Binding HeaderSubtitle, Converter={StaticResource StringEmptyToVisibilityConverter}}"
+                                       Margin="0,0,0,8" />
+
+                            <!-- Logo or title -->
+                            <Image MaxWidth="400" MaxHeight="90" HorizontalAlignment="Left" Margin="0,0,0,16"
+                                   Visibility="{Binding LogoUrl, Converter={StaticResource NullToVisibilityConverter}}">
+                                <Image.Source>
+                                    <BitmapImage UriSource="{Binding LogoUrl}" />
+                                </Image.Source>
+                            </Image>
+                            <TextBlock Text="{Binding HeaderTitle}"
+                                       Style="{StaticResource HeroTitleStyle}"
+                                       Visibility="{Binding LogoUrl, Converter={StaticResource InvertedNullToVisibilityConverter}}"
+                                       Margin="0,0,0,12" />
+
+                            <!-- Meta row (Year / First air date, Rating, Community Rating, Runtime, Network) -->
+                            <TextBlock Text="{Binding MetaText}"
+                                       Style="{StaticResource MetaTextStyle}"
+                                       Margin="0,0,0,8" />
+
+                            <!-- Subtitles indicator badge -->
+                            <Border Background="#26FFFFFF" CornerRadius="4" Padding="8,3"
+                                    VerticalAlignment="Center" Margin="0,0,0,10" HorizontalAlignment="Left"
+                                    Visibility="{Binding HasSubtitles, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Border Background="{StaticResource AccentBrush}" CornerRadius="2" Padding="4,1">
+                                        <TextBlock Text="CC" Foreground="Black" FontSize="11" FontWeight="Bold" />
+                                    </Border>
+                                    <TextBlock Text="{Binding SubtitleSummary}" FontSize="13" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Genres -->
+                            <TextBlock Text="{Binding GenreText}"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="15"
+                                       Visibility="{Binding GenreText, Converter={StaticResource StringEmptyToVisibilityConverter}}"
+                                       Margin="0,0,0,20" />
+
+                            <!-- Overview -->
+                            <TextBlock Text="{Binding OverviewText}"
+                                       Style="{StaticResource OverviewTextStyle}"
+                                       MaxLines="5"
+                                       Margin="0,0,0,32" />
+
+                            <!-- Watched badge -->
+                            <Border Background="#33FFFFFF" CornerRadius="4"
+                                    Padding="10,4" Margin="0,0,0,16"
+                                    HorizontalAlignment="Left"
+                                    Visibility="{Binding Item.UserData.Played, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="12" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Text="WATCHED" Foreground="{StaticResource SuccessBrush}"
+                                               FontSize="12" FontWeight="Bold" CharacterSpacing="100" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Action buttons -->
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <Button x:Name="PlayButton"
+                                        Command="{Binding PlayCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Height="54" Padding="24,0"
+                                        AutomationProperties.Name="Play">
+                                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="16" VerticalAlignment="Center" />
+                                        <TextBlock Text="RESUME" FontSize="15" FontWeight="Bold"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding Item.HasProgress, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="PLAY" FontSize="15" FontWeight="Bold"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding Item.HasProgress, Converter={StaticResource InvertedBoolToVisibilityConverter}}" />
+                                        <Border Background="#33FFFFFF" CornerRadius="3" Padding="5,1" Margin="4,0,0,0"><TextBlock Text="A" FontSize="10" FontWeight="Bold" Foreground="White" /></Border>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Command="{Binding ToggleWatchedCommand}"
+                                        Style="{StaticResource GhostButtonStyle}"
+                                        Height="54" Padding="20,0"
+                                        AutomationProperties.Name="Toggle watched">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="15" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center"
+                                                  Visibility="{Binding Item.UserData.Played, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="WATCHED" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                   Visibility="{Binding Item.UserData.Played, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="MARK WATCHED" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                   Visibility="{Binding Item.UserData.Played, Converter={StaticResource InvertedBoolToVisibilityConverter}}" />
+                                        <Border Background="#33FFFFFF" CornerRadius="3" Padding="5,1" Margin="4,0,0,0"><TextBlock Text="X" FontSize="10" FontWeight="Bold" Foreground="White" /></Border>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Command="{Binding ToggleFavoriteCommand}"
+                                        Style="{StaticResource GhostButtonStyle}"
+                                        Height="54" Padding="20,0"
+                                        AutomationProperties.Name="Toggle favourite">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE735;" FontSize="15" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center"
+                                                  Visibility="{Binding Item.UserData.IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE734;" FontSize="15" Foreground="White" VerticalAlignment="Center"
+                                                  Visibility="{Binding Item.UserData.IsFavorite, Converter={StaticResource InvertedBoolToVisibilityConverter}}" />
+                                        <TextBlock Text="FAVOURITE" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                   Visibility="{Binding Item.UserData.IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="ADD TO FAVOURITES" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                   Visibility="{Binding Item.UserData.IsFavorite, Converter={StaticResource InvertedBoolToVisibilityConverter}}" />
+                                        <Border Background="#33FFFFFF" CornerRadius="3" Padding="5,1" Margin="4,0,0,0"><TextBlock Text="Y" FontSize="10" FontWeight="Bold" Foreground="White" /></Border>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Seasons / Discography row -->
+                    <StackPanel Margin="48,20,0,0"
+                                Visibility="{Binding HasSeasons, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="{Binding SeasonsSectionTitle}"
+                                   Style="{StaticResource SectionTitleStyle}"
+                                   Margin="0,0,0,16" />
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled" IsTabStop="False">
+                            <ItemsControl ItemsSource="{Binding Seasons}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="16" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ctrl:MediaCard Item="{Binding}"
+                                                        Command="{Binding DataContext.OpenItemCommand, ElementName=RootPage}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
+
+                    <!-- TV Episodes grid (16:9 landscape stills - 320 card + 16 margin = 336 ItemWidth) -->
+                    <StackPanel Margin="48,20,48,0"
+                                Visibility="{Binding IsTvEpisodeSection, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="{Binding EpisodesSectionTitle}"
+                                   Style="{StaticResource SectionTitleStyle}"
+                                   Margin="0,0,0,12" />
+                        <ItemsControl ItemsSource="{Binding Episodes}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapGrid Orientation="Horizontal"
+                                              ItemWidth="336"
+                                              ItemHeight="236"
+                                              MaximumRowsOrColumns="5"
+                                              HorizontalChildrenAlignment="Left" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ctrl:MediaCard Item="{Binding}"
+                                                    Command="{Binding DataContext.OpenItemCommand, ElementName=RootPage}"
+                                                    Margin="0,0,16,20" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Music Tracks grid (1:1 square artwork - 180 card + 16 margin = 196 ItemWidth) -->
+                    <StackPanel Margin="48,20,48,0"
+                                Visibility="{Binding IsMusicTrackSection, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="{Binding EpisodesSectionTitle}"
+                                   Style="{StaticResource SectionTitleStyle}"
+                                   Margin="0,0,0,12" />
+                        <ItemsControl ItemsSource="{Binding Episodes}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapGrid Orientation="Horizontal"
+                                              ItemWidth="196"
+                                              ItemHeight="236"
+                                              MaximumRowsOrColumns="8"
+                                              HorizontalChildrenAlignment="Left" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ctrl:MediaCard Item="{Binding}"
+                                                    Command="{Binding DataContext.OpenItemCommand, ElementName=RootPage}"
+                                                    Margin="0,0,16,20" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Cast & Crew (Borderless buttons, merged roles, clickable to actor page) -->
+                    <StackPanel Margin="48,20,0,0"
+                                Visibility="{Binding HasCast, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="Cast &amp; Crew"
+                                   Style="{StaticResource SectionTitleStyle}"
+                                   Margin="0,0,0,16" />
+                        <ScrollViewer HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled" IsTabStop="False">
+                            <ItemsControl ItemsSource="{Binding Cast}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="20" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding DataContext.OpenPersonCommand, ElementName=RootPage}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource CastMemberButtonStyle}"
+                                                Width="120" Height="170"
+                                                UseSystemFocusVisuals="True">
+                                            <StackPanel Width="120" Spacing="6" HorizontalAlignment="Center">
+                                                <Border Width="100" Height="100" CornerRadius="50"
+                                                        Background="{StaticResource CardBackgroundBrush}"
+                                                        HorizontalAlignment="Center">
+                                                    <Image Stretch="UniformToFill">
+                                                        <Image.Source>
+                                                            <BitmapImage UriSource="{Binding ImageUrl}" DecodePixelWidth="100" />
+                                                        </Image.Source>
+                                                    </Image>
+                                                </Border>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                           FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"
+                                                           TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" />
+                                                <TextBlock Text="{Binding Role}" FontSize="12"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                           TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Page>

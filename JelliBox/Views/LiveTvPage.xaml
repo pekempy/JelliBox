@@ -1,0 +1,189 @@
+<Page
+    x:Class="JelliBox.Views.LiveTvPage"
+    x:Name="RootPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctrl="using:JelliBox.Controls"
+    xmlns:vm="using:JelliBox.ViewModels"
+    xmlns:m="using:JelliBox.Models"
+    Background="{StaticResource AppBackgroundBrush}"
+    KeyDown="Page_KeyDown">
+
+    <Page.DataContext>
+        <vm:LiveTvViewModel />
+    </Page.DataContext>
+
+    <Grid>
+        <!-- Soft artwork glow behind the page (when enabled in Settings) -->
+        <ctrl:AmbientBackdrop />
+
+        <ProgressRing IsActive="{Binding IsLoading}"
+                      Width="28" Height="28"
+                      Foreground="{StaticResource AccentBrush}"
+                      VerticalAlignment="Top" HorizontalAlignment="Right"
+                      Margin="0,72,40,0" Canvas.ZIndex="10"
+                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+        <!-- Main Content Area -->
+        <Grid x:Name="ContentArea" Margin="40,68,40,24"
+              Visibility="{Binding IsLoading, Converter={StaticResource InvertedBoolToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="420" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Channels List (EPG) -->
+            <ListView x:Name="ChannelListView"
+                      ItemsSource="{Binding Channels}"
+                      SelectedItem="{Binding SelectedChannel, Mode=TwoWay}"
+                      SelectionMode="Single"
+                      IsItemClickEnabled="True"
+                      ItemClick="ChannelListView_ItemClick"
+                      Margin="0,0,24,0">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,0,0,8" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource CardBackgroundBrush}"
+                                CornerRadius="8"
+                                Padding="16,12"
+                                BorderThickness="1"
+                                BorderBrush="#22FFFFFF">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Channel number + badge -->
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,12,0">
+                                    <TextBlock Text="{Binding DisplayNumber}"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource AccentBrush}"
+                                               HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               HorizontalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxLines="1" />
+                                </StackPanel>
+
+                                <!-- Program Info -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                    <Grid>
+                                        <TextBlock Text="{Binding CurrentProgram.Name}"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxLines="1" />
+                                        <Border HorizontalAlignment="Right" Background="#CCFF0055" CornerRadius="4" Padding="6,2"
+                                                Visibility="{Binding CurrentProgram, Converter={StaticResource NullToVisibilityConverter}}">
+                                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                                <Ellipse Width="6" Height="6" Fill="White" VerticalAlignment="Center" />
+                                                <TextBlock Text="LIVE" FontSize="10" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <TextBlock Text="{Binding CurrentProgram.TimeRange}"
+                                               FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               Visibility="{Binding CurrentProgram.TimeRange, Converter={StaticResource StringEmptyToVisibilityConverter}}" />
+
+                                    <TextBlock Text="{Binding CurrentProgram.Overview}"
+                                               FontSize="12"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxLines="1"
+                                               Visibility="{Binding CurrentProgram.Overview, Converter={StaticResource StringEmptyToVisibilityConverter}}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <!-- Selected Channel Preview Panel -->
+            <Border Grid.Column="1"
+                    Background="{StaticResource CardBackgroundBrush}"
+                    CornerRadius="12"
+                    Padding="28"
+                    BorderThickness="1"
+                    BorderBrush="#33FFFFFF">
+                <ScrollViewer VerticalScrollBarVisibility="Hidden">
+                    <StackPanel Spacing="16" Visibility="{Binding SelectedChannel, Converter={StaticResource NullToVisibilityConverter}}">
+                        <!-- Channel Header -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Border Background="{StaticResource AccentBrush}" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding SelectedChannel.DisplayNumber}"
+                                           FontWeight="Bold" FontSize="16" Foreground="White" />
+                            </Border>
+                            <TextBlock Text="{Binding SelectedChannel.Name}"
+                                       FontSize="22" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Watch Channel Button -->
+                        <Button Command="{Binding TuneChannelCommand}"
+                                CommandParameter="{Binding SelectedChannel}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Height="48"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,8,0,8"
+                                AutomationProperties.Name="Watch Channel">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="15" VerticalAlignment="Center" />
+                                <TextBlock Text="WATCH LIVE" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                <Border Background="#33FFFFFF" CornerRadius="3" Padding="5,1"><TextBlock Text="A" FontSize="10" FontWeight="Bold" Foreground="White" /></Border>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Currently Airing Detail -->
+                        <Border Background="#15FFFFFF" CornerRadius="8" Padding="16">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="NOW AIRING" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" CharacterSpacing="100" />
+                                <TextBlock Text="{Binding SelectedChannel.CurrentProgram.Name}"
+                                           FontSize="18" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding SelectedChannel.CurrentProgram.TimeRange}"
+                                           FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="{Binding SelectedChannel.CurrentProgram.Overview}"
+                                           FontSize="13" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" MaxLines="6" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Upcoming Programs -->
+                        <TextBlock Text="UPCOMING NEXT" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" />
+
+                        <ItemsControl ItemsSource="{Binding UpcomingPrograms}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderThickness="0,0,0,1" BorderBrush="#1FFFFFFF" Padding="0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding TimeRange}" FontSize="12" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis" MaxLines="1" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- The navigation bar shared by every page -->
+        <ctrl:TopNavBar x:Name="TopBar" Current="livetv" Canvas.ZIndex="100" />
+    </Grid>
+</Page>
