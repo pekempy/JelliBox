@@ -50,7 +50,5 @@
     <!-- Internet + local network for reaching Jellyfin server -->
     <Capability Name="internetClient" />
     <Capability Name="privateNetworkClientServer" />
-    <uap:Capability Name="videosLibrary" />
-    <uap:Capability Name="musicLibrary" />
   </Capabilities>
 </Package>
